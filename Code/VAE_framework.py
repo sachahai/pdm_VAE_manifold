@@ -3,7 +3,7 @@
 # @Email:  sacha.haidinger@epfl.ch
 # @Project: Learning Methods for Cell Profiling
 # @Last modified by:   sachahai
-# @Last modified time: 2020-08-29T15:13:40+10:00
+# @Last modified time: 2020-08-31T10:48:28+10:00
 
 '''
 Vanilla VAE and SCVAE
@@ -28,26 +28,26 @@ import torch
 from torch import cuda, optim
 from torchsummary import summary
 
-from networks import VAE, Skip_VAE
-from infoMAX_VAE import CNN_128_VAE
-from data_processing import get_train_val_dataloader, imshow_tensor, get_inference_dataset
-from train_net import train_VAE_model
-from helpers import plot_train_result, save_checkpoint, load_checkpoint, save_brute, load_brute, plot_from_csv, metadata_latent_space, save_reconstruction
+from models.networks import VAE, Skip_VAE
+from models.infoMAX_VAE import CNN_128_VAE
+from util.data_processing import get_train_val_dataloader, imshow_tensor, get_inference_dataset
+from models.train_net import train_VAE_model
+from util.helpers import plot_train_result, save_checkpoint, load_checkpoint, save_brute, load_brute, plot_from_csv, metadata_latent_space, save_reconstruction
 
 
 ##########################################################
 # %% DataLoader and Co
 ##########################################################
 # Location of data
-datadir = 'DataSets/'
+datadir = '../DataSets/'
 datadir_BBBC = datadir + 'Synthetic_Data_1'
 datadir_Horvarth = datadir + 'Peter_Horvath_Subsample'
 datadir_Chaffer = datadir + 'Chaffer_Data'
 dataset_path = datadir_BBBC
 
-#path_to_GT = 'DataSets/MetaData2_PeterHorvath_GT_link_CP_SUBSAMPLE.csv'
-path_to_GT = 'DataSets/MetaData1_GT_link_CP.csv'
-#path_to_GT = 'DataSets/MetaData3_Chaffer_GT_link_CP.csv'
+#path_to_GT = '../DataSets/MetaData2_PeterHorvath_GT_link_CP_SUBSAMPLE.csv'
+path_to_GT = '../DataSets/MetaData1_GT_link_CP.csv'
+#path_to_GT = '../DataSets/MetaData3_Chaffer_GT_link_CP.csv'
 
 # Check if GPU avalaible
 train_on_gpu = cuda.is_available()
@@ -71,7 +71,7 @@ _,_ = imshow_tensor(features[0])
 ##########################################################
 
 #model = VAE(zdim=3, beta=1, base_enc=32, base_dec=32, depth_factor_dec=2)
-model = Skip_VAE(zdim=3, beta=1, base_enc=32, base_dec=32, depth_factor_dec=2)
+model = Skip_VAE(zdim=3,input_channels=3, beta=1, base_enc=32, base_dec=32, depth_factor_dec=2)
 if train_on_gpu:
     model.cuda()
 
@@ -79,10 +79,10 @@ if train_on_gpu:
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.999))
 
-epochs = 30
+epochs = 40
 
-model_name = f'Chaffer_SkipVAE_b1_{datetime.date.today()}'
-save_model_path = 'temporary_save/Simple_VAES/'+f'{model_name}.pth'
+model_name = f'Name_of_model_{datetime.date.today()}'
+save_model_path = f'{model_name}.pth'
 
 VAE, history, best_epoch = train_VAE_model(epochs, model, optimizer, train_loader, valid_loader,saving_path=save_model_path, train_on_gpu=train_on_gpu)
 fig = plot_train_result(history, best_epoch,save_path=None, infoMAX = False)
@@ -90,7 +90,7 @@ fig.show()
 plt.show()
 
 #SAVE TRAINED MODEL and history
-history_save = 'temporary_save/Simple_VAES/'+f'loss_evo_{model_name}.csv'
+history_save = f'loss_evo_{model_name}.csv'
 history.to_csv(history_save)
 
 
@@ -107,16 +107,19 @@ infer_data, infer_dataloader = get_inference_dataset(dataset_path,batch_size,inp
 #model_name='Model_name_string'
 
 #Where to save csv with metadata
-csv_save_output = 'temporary_save/Simple_VAES/'+f'{model_name}_metedata.csv'
+csv_save_output = f'{model_name}_metedata.csv'
 save_csv = True
 #Store raw image data in csv (results in heavy file
 store_raw = False
 
 metadata_csv = metadata_latent_space(VAE, infer_dataloader, train_on_gpu, GT_csv_path=path_to_GT, save_csv=save_csv, with_rawdata=store_raw,csv_path=csv_save_output)
 figplotly = plot_from_csv(metadata_csv,dim=3,num_class=7)#column='Sub_population',as_str=True)
-html_save = 'temporary_save/Simple_VAES/'+f'{model_name}_Representation.html'
+#For Chaffer Dataset
+#figplotly = plot_from_csv(metadata_csv,dim=3,column='Sub_population',as_str=True)
+
+html_save = f'{model_name}_Representation.html'
 plotly.offline.plot(figplotly, filename=html_save, auto_open=True)
 
 #save image of reconstruction and generated samples
-image_save = 'temporary_save/Simple_VAES/'+f'{model_name}.png'
+image_save = f'{model_name}.png'
 save_reconstruction(infer_dataloader,VAE,image_save,train_on_gpu)

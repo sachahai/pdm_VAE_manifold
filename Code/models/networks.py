@@ -3,7 +3,7 @@
 # @Email:  sacha.haidinger@epfl.ch
 # @Project: Learning Methods for Cell Profiling
 # @Last modified by:   sachahai
-# @Last modified time: 2020-08-23T18:30:46+10:00
+# @Last modified time: 2020-08-31T10:40:55+10:00
 
 '''
 Vanilla VAE and SC-VAE
@@ -17,7 +17,7 @@ import math
 from torch import nn
 from torch.nn import functional as F
 from torch.nn.init import xavier_normal_
-from nn_modules import Conv, ConvTranspose, ConvUpsampling, Skip_Conv_down, Skip_DeConv_up
+from models.nn_modules import Conv, ConvTranspose, ConvUpsampling, Skip_Conv_down, Skip_DeConv_up
 
 
 class VAE(nn.Module):
@@ -134,16 +134,17 @@ class VAE(nn.Module):
 
 class Skip_VAE(nn.Module):
 
-    def __init__(self, zdim, beta=1, base_enc=32, base_dec=32, depth_factor_dec=2):
+    def __init__(self, zdim,input_channels=3, beta=1, base_enc=32, base_dec=32, depth_factor_dec=2):
         '''
         Modulate the complexity of the model with parameter 'base_enc' and 'base_dec'
         '''
         super(Skip_VAE,self).__init__()
         self.zdim = zdim
         self.beta = beta
+        self.input_channels = input_channels
 
         self.encoder = nn.Sequential(
-            Skip_Conv_down(4,base_enc), # resolution is splitted by half
+            Skip_Conv_down(self.input_channels,base_enc), # resolution is splitted by half
             Skip_Conv_down(base_enc,base_enc*2,kernel_size=4, stride=2, padding=1),
             Skip_Conv_down(base_enc*2,base_enc*4,kernel_size=4, stride=2, padding=1),
             Skip_Conv_down(base_enc*4,base_enc*8,kernel_size=4, stride=2, padding=1),
@@ -160,7 +161,7 @@ class Skip_VAE(nn.Module):
             Skip_DeConv_up(int(base_dec*(depth_factor_dec**2)),int(base_dec*(depth_factor_dec**1))),
             Skip_DeConv_up(int(base_dec*(depth_factor_dec**1)),int(base_dec*(depth_factor_dec**0))),
             Skip_DeConv_up(int(base_dec*(depth_factor_dec**0)),int(base_dec*(depth_factor_dec**0))),
-            Skip_DeConv_up(int(base_dec*(depth_factor_dec**0)), 4, LastLayer=True)
+            Skip_DeConv_up(int(base_dec*(depth_factor_dec**0)), self.input_channels, LastLayer=True)
         )
 
         self.stabilize_exp = nn.Hardtanh(min_val=-6.,max_val=2.) #linear between min and max

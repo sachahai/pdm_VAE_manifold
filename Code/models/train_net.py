@@ -3,7 +3,7 @@
 # @Email:  sacha.haidinger@epfl.ch
 # @Project: Learning Methods for Cell Profiling
 # @Last modified by:   sachahai
-# @Last modified time: 2020-08-29T12:36:15+10:00
+# @Last modified time: 2020-08-31T10:26:36+10:00
 
 '''
 File containing main function to train the different VAE models with proper single cell images dataset
@@ -33,9 +33,9 @@ import torch.optim as optim
 from torch import cuda
 from torchvision.utils import save_image, make_grid
 
-from networks import VAE
-from helpers import plot_latent_space, show, EarlyStopping
-from infoMAX_VAE import infoNCE_bound
+from models.networks import VAE
+from util.helpers import plot_latent_space, show, EarlyStopping
+from models.infoMAX_VAE import infoNCE_bound
 
 
 ###################################################
@@ -185,8 +185,8 @@ def train_VAE_model(epochs, model, optimizer, train_loader, valid_loader, saving
     lr_schedul_VAE = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=40, gamma=0.6)
 
     for epoch in range(model.epochs+1,model.epochs+epochs+1):
-        global_VAE_loss, kl_loss, recon_loss = train(epoch, model,optimizer, train_loader, each_iteration, train_on_gpu)
-        global_VAE_loss_val, kl_loss_val, recon_loss_val = test(epoch, model,optimizer,valid_loader, each_iteration, train_on_gpu)
+        global_VAE_loss, kl_loss, recon_loss = train(epoch, model,optimizer, train_loader, train_on_gpu)
+        global_VAE_loss_val, kl_loss_val, recon_loss_val = test(epoch, model,optimizer,valid_loader, train_on_gpu)
 
         #early stopping takes the validation loss to check if it has decereased,
         #if so, model is saved, if not for 'patience' time in a row, the training loop is broken
@@ -403,8 +403,8 @@ def train_InfoMAX_model(epochs,VAE, MLP, opti_VAE, opti_MLP, train_loader, valid
     lr_schedul_MLP = torch.optim.lr_scheduler.StepLR(optimizer=opti_MLP, step_size=40, gamma=0.6)
 
     for epoch in range(VAE.epochs+1,VAE.epochs+epochs+1):
-        global_VAE_loss, MI_estimation, MI_estimator_loss, kl_loss, recon_loss = train_infoM_epoch(epoch, VAE, MLP, opti_VAE, opti_MLP, train_loader, each_iteration, train_on_gpu)
-        global_VAE_loss_val, MI_estimation_val, MI_estimator_loss_val, kl_loss_val, recon_loss_val = test_infoM_epoch(epoch, VAE, MLP, opti_VAE, opti_MLP, valid_loader, each_iteration, train_on_gpu)
+        global_VAE_loss, MI_estimation, MI_estimator_loss, kl_loss, recon_loss = train_infoM_epoch(epoch, VAE, MLP, opti_VAE, opti_MLP, train_loader, train_on_gpu)
+        global_VAE_loss_val, MI_estimation_val, MI_estimator_loss_val, kl_loss_val, recon_loss_val = test_infoM_epoch(epoch, VAE, MLP, opti_VAE, opti_MLP, valid_loader, train_on_gpu)
 
         #ealy stopping takes the validation loss to check if it has decereased,
         #if so, model is saved, if not for 'patience' time in a row, the training loop is broken
