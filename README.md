@@ -4,10 +4,10 @@
 In the context of image-based cell profiling, measurements of relevant properties of cells are extracted from microscopy images and used as a source of quantitative information to characterize the cell states. Although the recent advancements in deep learning based on convolutional neural networks (CNNs) that automatically learn features from image data, the gold standards in the field still rely on human-designed features. Here, we used a Variational Autoencoder (VAE) maximizing mutual information framework to learn high-quality representations of cells, automatically learnt from the single cell images in one cohesive step. We proposed different quantitive metrics to evaluate the quality of latent representations produced by different techniques and showed that, depending on the dataset characteristics, VAEs can lead to a data embedding of a quality comparable to the traditional methods, while providing several benefits thanks to the learnt from data nature of the process. Moreover, we discussed possible extensions of our framework that would allow to integrate feedbacks from experts throughout visual interaction and to obtain more interpretable features, the lack of the latter being one of the biggest obstacles of the use of artificial intelligence in this field. This improved framework could provide researchers with a new powerful tool to analyze cellular phenotypes effectively and to gain insight into cellular structure variations that characterizes
 different populations of cells, highly valuable for many downstream analyses.
 
-![image Pip 1](./fig/abstractFigure.png)
+![image Pip 1](Code/fig/abstractFigure.png)
 
 ---
-## Git Directory Structure
+## Git `Code` Directory Structure
 ```bash
 .
 ├── human_guidance
